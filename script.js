@@ -3,6 +3,7 @@ window.addEventListener("load", () => {
   const ctx = canvas.getContext("2d");
   canvas.width = 800;
   canvas.height = 720;
+  let enemies = []
 
   // applies event listeners to keyboard events and
   // holds array of all currently active keys
@@ -63,8 +64,8 @@ window.addEventListener("load", () => {
       this.weight = 1 // gravity effect to naturally bring player down when up key not pressed
     }
     draw(context) {
-      context.fillStyle = "white";
-      context.fillRect(this.x, this.y, this.width, this.height);
+    //   context.fillStyle = "white";
+    //   context.fillRect(this.x, this.y, this.width, this.height);
       // arguments 2,3,4,5 are sourcex, sy, sw, sh are the source image properties (spritesheet)
       // 0,0 for sx, sy give us top left image in spritesheet
       context.drawImage(
@@ -137,10 +138,41 @@ window.addEventListener("load", () => {
   }
 
   // generates Enemies
-  class Enemy {}
+  class Enemy {
+      constructor(gameWidth, gameHeight){
+          this.gameWidth = gameWidth
+          this.gameHeight = gameHeight
+          this.image = document.getElementById('enemyImage')
+          this.width = 160
+          this.height = 119
+          this.x = this.gameWidth
+          this.y = this.gameHeight - this.height
+          this.frameX = 0
+          this.speed = 8
+          
+      }
+      draw(context){
+          context.drawImage(this.image, this.frameX * this.width, 0, this.width, this.height, this.x, this.y, this.width, this.height)
+      }
+      update(){
+          this.x -= this.speed
+      }
+  }
+
 
   // handles adding, animating, & removing enemies
-  function handleEnemies() {}
+  function handleEnemies(deltaTime) {
+    if (enemyTimer > enemyInterval + randomEnemyInterval){
+      enemies.push(new Enemy(canvas.width, canvas.height))  
+      enemyTimer = 0
+    } else {
+        enemyTimer += deltaTime
+    }
+      enemies.forEach(enemy => {
+          enemy.draw(ctx)
+          enemy.update()
+      })  
+    }
 
   // handles displaying score/game over message
   function displayStatusText() {}
@@ -148,16 +180,26 @@ window.addEventListener("load", () => {
   const input = new InputHandler();
   const player = new Player(canvas.width, canvas.height);
   const background = new Background(canvas.width, canvas.height)
+ 
+  let lastTime = 0
+  // every time timer hits 1000ms we want to add a new enemy
+  let enemyTimer = 0
+  let enemyInterval = 1000
+  let randomEnemyInterval = Math.random() * 1000 + 500
 
   // main animation loop; runs 60x/second
-  function animate() {
+  function animate(timeStamp) {
+      // timeStamp is argument automatically generated from requestAnmationFrame()
+    const deltaTime = timeStamp - lastTime 
+    lastTime = timeStamp 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     background.draw(ctx)
     // background.update()
     player.update(input);
     player.draw(ctx);
+    handleEnemies(deltaTime)
     requestAnimationFrame(animate);
   }
-
-  animate();
+ // we pass 0 b/c first call of animate() is not made by requestAnimationFrame inside animate loop
+  animate(0);
 });
