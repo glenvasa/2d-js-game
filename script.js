@@ -113,7 +113,28 @@ window.addEventListener("load", () => {
   }
 
   // handles endlessly scrolling backgrounds
-  class Background {}
+  class Background {
+      constructor(gameWidth, gameHeight){
+          this.gameWidth = gameWidth
+          this.gameHeight = gameHeight
+          this.image = document.getElementById('backgroundImage')
+          this.x = 0
+          this.y = 0
+          this.width = 2400
+          this.height = 720
+          this.speed = 10
+      }
+      draw(context){
+          context.drawImage(this.image, this.x, this.y, this.width, this.height)
+          // 2nd background drawn on x axis right after 1st image so looks like uninterupted scrolling
+          // subtracting this.speed below prevents noticing any minor gap between images
+          context.drawImage(this.image, this.x + this.width - this.speed, this.y, this.width, this.height)
+      }
+      update(){
+          this.x -= this.speed
+          if (this.x < 0 - this.width) this.x = 0
+      }
+  }
 
   // generates Enemies
   class Enemy {}
@@ -126,10 +147,13 @@ window.addEventListener("load", () => {
 
   const input = new InputHandler();
   const player = new Player(canvas.width, canvas.height);
+  const background = new Background(canvas.width, canvas.height)
 
   // main animation loop; runs 60x/second
   function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    background.draw(ctx)
+    // background.update()
     player.update(input);
     player.draw(ctx);
     requestAnimationFrame(animate);
